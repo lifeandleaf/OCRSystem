@@ -1,7 +1,7 @@
 import sys, os, json
 import threading
 import time
-from PIL import ImageQt
+from PIL import ImageQt # pillow == 8.1.0
 
 
 from base import Ui_OCR
