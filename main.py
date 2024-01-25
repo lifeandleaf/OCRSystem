@@ -1,15 +1,33 @@
 import sys, os, json
 import threading
 import time
-from PIL import ImageQt # pillow == 8.1.0
+from PIL import ImageQt, Image # pillow == 8.1.0
+import cv2
 
 
 from base import Ui_OCR
 from PyQt5.QtWidgets import QApplication, QWidget, QFileDialog, QListWidgetItem, QListView, QInputDialog, QLineEdit
-from PyQt5.QtGui import QPixmap, QIcon
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtGui import QPixmap, QIcon, QImage, QMovie
+from PyQt5.QtCore import Qt, QSize, QTimer, QThread, pyqtSignal
 
 from tools import Recognize, cropImage
+
+class getInfo(QThread):
+    signal = pyqtSignal(dict)
+    def __init__(self, imgPath):
+        super().__init__()
+        self.imgPath = imgPath
+
+    def run(self):
+        fileExtension = os.path.splitext(self.imgPath)[-1]
+        if os.path.exists(self.imgPath.replace(fileExtension, '.json')):
+            self.signal.emit(self.imgPath)
+            return
+        info = Recognize(self.imgPath)
+        with open(self.imgPath.replace(fileExtension, '.json'), 'w') as f:
+            f.write(json.dumps(info))
+        self.signal.emit(info)
 
 class MyWindow(QWidget, Ui_OCR):
     def __init__(self, parent=None):
@@ -18,13 +36,20 @@ class MyWindow(QWidget, Ui_OCR):
         # init window
         self.stackedWidget.setCurrentIndex(1)
         self.progressBar.reset()
+        self.timer_camera = QTimer()
+        self.videoCap = cv2.VideoCapture()
+        self.CAM_NUM = 0
+        self.radioButton.setEnabled(False)
+        self.videoCapDir = ''
         # 绑定回调函数
+        self.timer_camera.timeout.connect(self.showVideo)
+
         self.pushButton.clicked.connect(self.pushButtonClicked)
         self.pushButton_2.clicked.connect(self.pushButton_2Clicked)
         self.pushButton_3.clicked.connect(self.pushButton_3Clicked)
 
         self.pushButton_7.clicked.connect(self.pushButton_7Clicked)
-
+        self.pushButton_8.clicked.connect(self.pushButton_8Clicked)
         self.pushButton_9.clicked.connect(self.pushButton_9Clicked)
         self.pushButton_10.clicked.connect(self.pushButton_10Clicked)
         self.pushButton_11.clicked.connect(self.pushButton_11Clicked)
@@ -32,22 +57,114 @@ class MyWindow(QWidget, Ui_OCR):
         self.pushButton_13.clicked.connect(self.pushButton_13Clicked)
 
         self.pushButton_15.clicked.connect(self.pushButton_15Clicked)
+
+        self.listWidget_2.itemDoubleClicked.connect(self.listWidget_2ItemClicked)
         self.listWidget_3.itemDoubleClicked.connect(self.listWidget_3ItemClicked)
         self.listWidget_4.itemDoubleClicked.connect(self.listWidget_4ItemClicked)
-
         self.show()
 
     # 图像采集界面
     def pushButtonClicked(self):
         self.stackedWidget.setCurrentIndex(1)
 
+    def listWidget_2ItemClicked(self):
+        if self.listWidget_2.count() <= 0:
+            return
+        imgPath = self.listWidget_2.currentItem().text()
+        img = QPixmap(imgPath)
+        img = img.scaled(self.label_5.width() - 10, self.label_5.height() - 10, Qt.KeepAspectRatio,
+                         Qt.SmoothTransformation)
+        self.label_5.setPixmap(img)
+        fileExtension = os.path.splitext(imgPath)[-1]
+        jsonPath = imgPath.replace(fileExtension, '.json')
+        if not os.path.exists(jsonPath):
+            self.infoThread = getInfo(imgPath)
+            self.infoThread.signal.connect(self.showImageLabel)
+            self.infoThread.start()
+        else:
+            with open(jsonPath, 'r', encoding='utf-8') as f:
+                info = json.loads(f.read())
+                self.showImageLabel(info)
+
+
     # 打开摄像头
     def pushButton_9Clicked(self):
-        img = QPixmap('./test.jpg')
-        img = img.scaled(self.label_3.width()-10, self.label_3.height()-10, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        self.label_3.setPixmap(img)
+        if self.timer_camera.isActive() == False:
+            flag = self.videoCap.open(self.CAM_NUM)
+            if flag == False:
+                msg = QMessageBox.warning(self, '警告', "请检查相机与电脑是否正确连接", buttons=QMessageBox.Ok)
+            else:
+                self.timer_camera.start(30)
+                self.pushButton_9.setText('关闭摄像头')
+                if self.pushButton_8.text() == '拍摄':
+                    self.radioButton.setEnabled(True)
+        else:
+            self.timer_camera.stop()
+            self.videoCap.release()
+            self.label_3.setText('视频窗口')
+            self.pushButton_9.setText('打开摄像头')
+            # 关闭自动采样
+            self.radioButton.setChecked(False)
+            self.radioButton.setEnabled(False)
 
-    # 文本识别界面
+    # 从视频流采样并显示
+    def showVideo(self):
+        flag, img = self.videoCap.read()
+
+        show = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        showImg = QImage(show.data, show.shape[1], show.shape[0], QImage.Format_RGB888)
+        showImg = QPixmap.fromImage(showImg).scaled(self.label_3.width() - 10, self.label_3.height() - 10, Qt.KeepAspectRatio,
+                         Qt.SmoothTransformation)
+        self.label_3.setPixmap(showImg)
+
+    def pushButton_8Clicked(self):
+        if self.pushButton_8.text() == '打开文件夹':
+            self.videoCapDir = QFileDialog.getExistingDirectory(self, '打开文件夹', '.')
+            if self.videoCapDir == '':
+                return
+            for path in os.listdir(self.videoCapDir):
+                fileExtension = os.path.splitext(path)[-1]
+                if fileExtension != '.jpg' and fileExtension != '.png':
+                    continue
+                self.listWidget_2.addItem(os.path.join(self.videoCapDir, path))
+            self.pushButton_8.setText('拍摄')
+            if self.pushButton_9.text() == '关闭摄像头':
+                self.radioButton.setEnabled(True)
+        elif self.pushButton_8.text() == '拍摄':
+            if self.timer_camera.isActive():
+                flag, img = self.videoCap.read()
+                filePath = os.path.join(self.videoCapDir, 'sampling_{}.jpg'.format(self.listWidget_2.count()))
+                cv2.imwrite(filePath, img)
+                self.listWidget_2.addItem(filePath)
+                img = QPixmap(filePath)
+                img = img.scaled(self.label_5.width() - 10, self.label_5.height() - 10, Qt.KeepAspectRatio,
+                                 Qt.SmoothTransformation)
+                self.label_5.setPixmap(img)
+                self.loading_label(self.label_6)
+                self.infoThread = getInfo(filePath)
+                self.infoThread.signal.connect(self.showImageLabel)
+                self.infoThread.start()
+        else:
+            return
+
+    def loading_label(self, label):
+        # 暂时缓冲
+        loading_gif = QMovie('./resources/loading.gif')
+        loading_gif.setScaledSize(QSize(min(label.width() - 10, 200), min(label.height() - 10, 200)))
+        loading_gif.start()
+        label.setMovie(loading_gif)
+
+    def showImageLabel(self, info):
+        '''
+        :param info:
+        :return:
+        '''
+        str = ''
+        for label in info['label']:
+            str += label + '\n'
+        self.label_6.setText(str)
+
+    # 文本识别界面l
     def pushButton_2Clicked(self):
         self.stackedWidget.setCurrentIndex(2)
 

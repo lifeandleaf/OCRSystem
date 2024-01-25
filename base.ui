@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1200</width>
-    <height>1000</height>
+    <height>800</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,7 +19,7 @@
   <property name="minimumSize">
    <size>
     <width>1200</width>
-    <height>1000</height>
+    <height>800</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -30,8 +30,9 @@
   </property>
   <property name="styleSheet">
    <string notr="true">QProgressBar#progressBar{
-	font:9pt;
-	border-radius:10px;
+	font:15px;
+	height: 15px;
+	border-radius:5px;
 	border:1px solid #E8EDF2;
 	background-color: rgb(220, 220, 220);
 	border-color: rgb(180, 180, 180);
@@ -274,7 +275,7 @@ QLineEdit#lineEdit:hover{
          <string notr="true"/>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="page">
          <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="2,8">
@@ -684,7 +685,7 @@ QLineEdit#lineEdit:hover{
                       </sizepolicy>
                      </property>
                      <property name="text">
-                      <string>拍摄</string>
+                      <string>打开文件夹</string>
                      </property>
                     </widget>
                    </item>
@@ -750,6 +751,7 @@ QLineEdit#lineEdit:hover{
                    <font>
                     <family>Times New Roman</family>
                     <pointsize>18</pointsize>
+                    <weight>50</weight>
                     <bold>false</bold>
                    </font>
                   </property>
@@ -1057,6 +1059,7 @@ QLineEdit#lineEdit:hover{
                    <font>
                     <family>Times New Roman</family>
                     <pointsize>18</pointsize>
+                    <weight>50</weight>
                     <bold>false</bold>
                    </font>
                   </property>
@@ -1121,6 +1124,18 @@ QLineEdit#lineEdit:hover{
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="sizeIncrement">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="baseSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
         </property>
         <property name="styleSheet">
          <string notr="true"/>
