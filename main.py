@@ -149,7 +149,7 @@ class MyWindow(QWidget, Ui_OCR):
 
     def loading_label(self, label):
         # 暂时缓冲
-        loading_gif = QMovie('./resources/loading.gif')
+        loading_gif = QMovie('./resources/loading_2.gif')
         loading_gif.setScaledSize(QSize(min(label.width() - 10, 200), min(label.height() - 10, 200)))
         loading_gif.start()
         label.setMovie(loading_gif)
