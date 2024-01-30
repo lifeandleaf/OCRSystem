@@ -23,7 +23,12 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>OCR</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normalon>resources/1.png</normalon>
+   </iconset>
   </property>
   <property name="autoFillBackground">
    <bool>true</bool>
@@ -382,7 +387,7 @@ QLineEdit#lineEdit{
          <string notr="true"/>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="page">
          <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="2,8">
@@ -733,56 +738,6 @@ QLineEdit#lineEdit{
                      <height>20</height>
                     </size>
                    </property>
-                   <item>
-                    <property name="text">
-                     <string>新建项目</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>新建项目</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>新建项目</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>新建项目</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>新建项目</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>新建项目</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>新建项目</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>新建项目</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>新建项目</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>新建项目</string>
-                    </property>
-                   </item>
                   </widget>
                  </item>
                 </layout>
@@ -1008,39 +963,9 @@ QLineEdit#lineEdit{
                    <property name="gridSize">
                     <size>
                      <width>0</width>
-                     <height>20</height>
+                     <height>30</height>
                     </size>
                    </property>
-                   <item>
-                    <property name="text">
-                     <string>新建项目</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>新建项目</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>新建项目</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>新建项目</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>新建项目</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>新建项目</string>
-                    </property>
-                   </item>
                   </widget>
                  </item>
                 </layout>
@@ -1303,7 +1228,7 @@ QLineEdit#lineEdit{
                    <enum>QFrame::NoFrame</enum>
                   </property>
                   <property name="text">
-                   <string>缩略图</string>
+                   <string/>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignCenter</set>
@@ -1533,7 +1458,7 @@ QLineEdit#lineEdit{
                    <enum>QFrame::Raised</enum>
                   </property>
                   <property name="text">
-                   <string>文本信息</string>
+                   <string/>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignCenter</set>
@@ -1598,7 +1523,7 @@ QLineEdit#lineEdit{
                 </sizepolicy>
                </property>
                <property name="text">
-                <string>操作</string>
+                <string>新建工程</string>
                </property>
               </widget>
              </item>

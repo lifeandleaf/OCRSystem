@@ -6,12 +6,13 @@ import cv2
 
 
 from base import Ui_OCR
+from aug import Ui_Form
 from PyQt5.QtWidgets import QApplication, QWidget, QFileDialog, QListWidgetItem, QListView, QInputDialog, QLineEdit
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QPixmap, QIcon, QImage, QMovie
 from PyQt5.QtCore import Qt, QSize, QTimer, QThread, pyqtSignal
 
-from tools import Recognize, cropImage
+from tools import Recognize, cropImage, augImage
 
 class getInfo(QThread):
     signal = pyqtSignal(dict)
@@ -29,6 +30,60 @@ class getInfo(QThread):
             f.write(json.dumps(info))
         self.signal.emit(info)
 
+class AugWindow(QWidget, Ui_Form):
+    def __init__(self):
+        QWidget.__init__(self)
+        self.setupUi(self)
+        # init window
+        self.label.setAlignment(Qt.AlignCenter)
+        self.listWidget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.listWidget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setFixedSize(800, 600)
+
+        # 绑定接口
+        self.listWidget.itemDoubleClicked.connect(self.listWidget_ItemClicked)
+        self.pushButton.clicked.connect(self.pushButtonClicked)
+        self.pushButton_2.clicked.connect(self.pushButton_2Clicked)
+
+    def showInLabel(self, imgPath) -> None:
+        # 添加增广图像显示在列表中
+        self.listWidget.clear()
+        self.augImages = [Image.open(imgPath)] + augImage(imgPath)
+        for img in self.augImages:
+            img = QPixmap(ImageQt.toqpixmap(img)).scaled(self.listWidget.width() - 10, self.listWidget.height() - 10, Qt.KeepAspectRatio,
+                         Qt.SmoothTransformation)
+            item = QListWidgetItem()
+            item.setIcon(QIcon(img))
+            self.listWidget.setIconSize(QSize(self.listWidget.width() - 50, self.listWidget.height() - 50))
+            self.listWidget.setResizeMode(QListView.Adjust)
+            self.listWidget.addItem(item)
+        if self.listWidget.count() <= 0:
+            return
+        self.listWidget.setCurrentRow(0)
+        self.listWidget_ItemClicked()
+
+    def listWidget_ItemClicked(self):
+        row = self.listWidget.currentRow()
+        img = QPixmap(ImageQt.toqpixmap(self.augImages[row])).scaled(self.label.width() - 10, self.label.height() - 10, Qt.KeepAspectRatio,
+                                      Qt.SmoothTransformation)
+        self.label.setPixmap(img)
+
+    def pushButtonClicked(self):
+        row = self.listWidget.currentRow()
+        if row <= 0:
+            return
+        row -= 1
+        self.listWidget.setCurrentRow(row)
+        self.listWidget_ItemClicked()
+
+    def pushButton_2Clicked(self):
+        row = self.listWidget.currentRow()
+        if row + 1 >= self.listWidget.count():
+            return
+        row += 1
+        self.listWidget.setCurrentRow(row)
+        self.listWidget_ItemClicked()
+
 class MyWindow(QWidget, Ui_OCR):
     def __init__(self, parent=None):
         QWidget.__init__(self, parent=parent)
@@ -41,6 +96,7 @@ class MyWindow(QWidget, Ui_OCR):
         self.CAM_NUM = 0
         self.radioButton.setEnabled(False)
         self.videoCapDir = ''
+        self.augWindow = AugWindow()
         # 绑定回调函数
         self.timer_camera.timeout.connect(self.showVideo)
 
@@ -48,6 +104,7 @@ class MyWindow(QWidget, Ui_OCR):
         self.pushButton_2.clicked.connect(self.pushButton_2Clicked)
         self.pushButton_3.clicked.connect(self.pushButton_3Clicked)
 
+        self.pushButton_6.clicked.connect(self.pushButton_6Clicked)
         self.pushButton_7.clicked.connect(self.pushButton_7Clicked)
         self.pushButton_8.clicked.connect(self.pushButton_8Clicked)
         self.pushButton_9.clicked.connect(self.pushButton_9Clicked)
@@ -55,17 +112,30 @@ class MyWindow(QWidget, Ui_OCR):
         self.pushButton_11.clicked.connect(self.pushButton_11Clicked)
         self.pushButton_12.clicked.connect(self.pushButton_12Clicked)
         self.pushButton_13.clicked.connect(self.pushButton_13Clicked)
-
+        self.pushButton_14.clicked.connect(self.pushButton_14Clicked)
         self.pushButton_15.clicked.connect(self.pushButton_15Clicked)
 
         self.listWidget_2.itemDoubleClicked.connect(self.listWidget_2ItemClicked)
         self.listWidget_3.itemDoubleClicked.connect(self.listWidget_3ItemClicked)
         self.listWidget_4.itemDoubleClicked.connect(self.listWidget_4ItemClicked)
+        self.listWidget_5.itemClicked.connect(self.listWidget_5ItemClicked)
+        self.listWidget_5.itemDoubleClicked.connect(self.listWidget_5ItemDoubleClicked)
+
         self.show()
 
     # 图像采集界面
     def pushButtonClicked(self):
         self.stackedWidget.setCurrentIndex(1)
+
+    def pushButton_6Clicked(self):
+        self.label_5.clear()
+        self.label_6.clear()
+        self.listWidget_2.clear()
+        if self.pushButton_9.text() == '关闭摄像头':
+            self.pushButton_9Clicked()
+        if self.pushButton_8.text() == '拍摄':
+            self.pushButton_8.setText('打开文件夹')
+        self.radioButton.setEnabled(False)
 
     def listWidget_2ItemClicked(self):
         if self.listWidget_2.count() <= 0:
@@ -126,7 +196,7 @@ class MyWindow(QWidget, Ui_OCR):
                 fileExtension = os.path.splitext(path)[-1]
                 if fileExtension != '.jpg' and fileExtension != '.png':
                     continue
-                self.listWidget_2.addItem(os.path.join(self.videoCapDir, path))
+                self.listWidget_2.addItem(QListWidgetItem(QIcon('./resources/file_icon.png'), os.path.join(self.videoCapDir, path)))
             self.pushButton_8.setText('拍摄')
             if self.pushButton_9.text() == '关闭摄像头':
                 self.radioButton.setEnabled(True)
@@ -138,7 +208,7 @@ class MyWindow(QWidget, Ui_OCR):
                 self.listWidget_2.addItem(filePath)
                 img = QPixmap(filePath)
                 img = img.scaled(self.label_5.width() - 10, self.label_5.height() - 10, Qt.KeepAspectRatio,
-                                 Qt.SmoothTransformation)
+                                 Qt.SmoothTWransformation)
                 self.label_5.setPixmap(img)
                 self.loading_label(self.label_6)
                 self.infoThread = getInfo(filePath)
@@ -164,7 +234,7 @@ class MyWindow(QWidget, Ui_OCR):
             str += label + '\n'
         self.label_6.setText(str)
 
-    # 文本识别界面l
+    # 文本识别界面
     def pushButton_2Clicked(self):
         self.stackedWidget.setCurrentIndex(2)
 
@@ -175,8 +245,9 @@ class MyWindow(QWidget, Ui_OCR):
         fileList = os.listdir(dir)
         fileListFilter = []
         for path in fileList:
-            if path.endswith('.jpg') or path.endswith('png'):
+            if path.endswith('.jpg') or path.endswith('.png'):
                 fileListFilter.append(os.path.join(dir, path))
+        self.listWidget_3.clear()
         self.listWidget_3AddItem(fileListFilter)
         if self.listWidget_3.count() > 0:
             self.listWidget_3.setCurrentRow(0)
@@ -188,7 +259,7 @@ class MyWindow(QWidget, Ui_OCR):
         :return: void
         '''
         for item in items:
-            self.listWidget_3.addItem(item)
+            self.listWidget_3.addItem(QListWidgetItem(QIcon('./resources/file_icon.png'), item))
 
     def listWidget_3ItemClicked(self):
         index = self.listWidget_3.selectedIndexes()[0]
@@ -307,6 +378,34 @@ class MyWindow(QWidget, Ui_OCR):
     # 数据生成界面
     def pushButton_3Clicked(self):
         self.stackedWidget.setCurrentIndex(0)
+
+    def pushButton_14Clicked(self):
+        dir = QFileDialog.getExistingDirectory(self, '打开文件夹', '.')
+        if dir == '':
+            return
+        fileList = os.listdir(dir)
+        fileListFilter = []
+        for path in fileList:
+            if path.endswith('.jpg') or path.endswith('.png'):
+                fileListFilter.append(os.path.join(dir, path))
+        self.listWidget_5.clear()
+        items = [QListWidgetItem(QIcon('./resources/file_icon.png'), x) for x in fileListFilter]
+        [self.listWidget_5.addItem(item) for item in items]
+
+    def listWidget_5ItemClicked(self):
+        row = self.listWidget_5.currentRow()
+        filePath = self.listWidget_5.item(row).text()
+        img = QPixmap(filePath)
+        img = img.scaled(self.label_2.width()-10, self.label_2.height()-10, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        self.label_2.setPixmap(img)
+
+    def listWidget_5ItemDoubleClicked(self):
+        row = self.listWidget_5.currentRow()
+        imgPath = self.listWidget_5.item(row).text()
+        self.augWindow.setWindowFlags(Qt.WindowStaysOnTopHint)
+        self.augWindow.setWindowModality(Qt.ApplicationModal)
+        self.augWindow.show()
+        self.augWindow.showInLabel(imgPath)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

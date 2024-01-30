@@ -73,6 +73,16 @@ def cropImage(imgPath, points):
     ret = Image.fromarray(cv2.cvtColor(roi_img_, cv2.COLOR_BGR2RGB))
     return ret
 
+def augImage(imgPath) -> list:
+    '''
+    :param imgPath: 输入图像的路径
+    :return: 一个包含多张pillow类型图像的列表
+    '''
+    img = Image.open(imgPath)
+    ret = [img for i in range(7)]
+    return ret
+
+
 if __name__ == '__main__':
     img = cropImage('./test.jpg', [100, 100, 400, 100, 400, 300, 100, 300])
     cv2.imshow('1', img)
