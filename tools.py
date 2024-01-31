@@ -2,6 +2,13 @@ import time
 from PIL import Image
 import cv2
 import numpy as np
+import os
+
+from straug.blur import GaussianBlur, DefocusBlur, MotionBlur, GlassBlur, ZoomBlur
+from straug.camera import Contrast, Brightness, Pixelate
+from straug.geometry import Rotate, Shrink, TranslateX, TranslateY
+from straug.noise import GaussianNoise, ShotNoise, ImpulseNoise, SpeckleNoise
+from straug.weather import Fog, Rain, Shadow
 
 def Recognize(imgPath):
     '''
@@ -73,17 +80,28 @@ def cropImage(imgPath, points):
     ret = Image.fromarray(cv2.cvtColor(roi_img_, cv2.COLOR_BGR2RGB))
     return ret
 
-def augImage(imgPath) -> list:
-    '''
-    :param imgPath: 输入图像的路径
-    :return: 一个包含多张pillow类型图像的列表
-    '''
+def augImage(imgPath:str) -> list:
+    name = {
+        'GaussianBlur': '高斯滤波', 'DefocusBlur': '散焦模糊', 'MotionBlur': '运动模糊', 'GlassBlur': '玻璃模糊', 'ZoomBlur': '快速变焦',
+        'Contrast': '对比度', 'Brightness': '亮度', 'Pixelate': '像素化',
+        'Rotate': '旋转', 'Shrink': '收缩', 'TranslateX': '横向平移', 'TranslateY': '纵向平移',
+        'GaussianNoise': '高斯噪声', 'ShotNoise': '镜头噪声', 'ImpulseNoise': '脉冲噪声', 'SpeckleNoise': '斑点噪声',
+        'Fog': '雾化', 'Rain': '雨水', 'Shadow': '阴影'
+    }
+    rng = np.random.default_rng(2024)
+    funcs = [GaussianBlur(rng=rng), DefocusBlur(rng=rng), MotionBlur(rng=rng), GlassBlur(rng=rng), ZoomBlur(rng=rng)]
+    funcs.extend([Contrast(rng=rng), Brightness(rng=rng), Pixelate(rng=rng)])
+    funcs.extend([Rotate(rng=rng), Shrink(rng=rng), TranslateX(rng=rng), TranslateY(rng=rng)])
+    funcs.extend([GaussianNoise(rng=rng), ShotNoise(rng=rng), ImpulseNoise(rng=rng), SpeckleNoise(rng=rng)])
+    funcs.extend([Fog(rng=rng), Rain(rng=rng), Shadow(rng=rng)])
+    ret = []
     img = Image.open(imgPath)
-    ret = [img for i in range(7)]
+    for method in funcs:
+        func_name = name[type(method).__name__]
+        ret.append({'name': func_name, 'image': method(img)})
     return ret
 
-
 if __name__ == '__main__':
-    img = cropImage('./test.jpg', [100, 100, 400, 100, 400, 300, 100, 300])
-    cv2.imshow('1', img)
-    cv2.waitKey()
+    augImages = augImage('./Dir/ocr_0.jpg')
+    for img in augImages:
+        img.show()

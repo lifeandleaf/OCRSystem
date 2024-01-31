@@ -38,6 +38,7 @@ class AugWindow(QWidget, Ui_Form):
         self.label.setAlignment(Qt.AlignCenter)
         self.listWidget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.listWidget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.listWidget.setViewMode(QListView.IconMode)
         self.setFixedSize(800, 600)
 
         # 绑定接口
@@ -48,13 +49,16 @@ class AugWindow(QWidget, Ui_Form):
     def showInLabel(self, imgPath) -> None:
         # 添加增广图像显示在列表中
         self.listWidget.clear()
-        self.augImages = [Image.open(imgPath)] + augImage(imgPath)
-        for img in self.augImages:
+        self.augImages = [{'name': '原图', 'image': Image.open(imgPath)}] + augImage(imgPath)
+        for dict in self.augImages:
+            key = dict['name']
+            img = dict['image']
             img = QPixmap(ImageQt.toqpixmap(img)).scaled(self.listWidget.width() - 10, self.listWidget.height() - 10, Qt.KeepAspectRatio,
                          Qt.SmoothTransformation)
             item = QListWidgetItem()
             item.setIcon(QIcon(img))
-            self.listWidget.setIconSize(QSize(self.listWidget.width() - 50, self.listWidget.height() - 50))
+            item.setText(key)
+            self.listWidget.setIconSize(QSize(min(self.listWidget.width() - 50, 200), self.listWidget.height() - 50))
             self.listWidget.setResizeMode(QListView.Adjust)
             self.listWidget.addItem(item)
         if self.listWidget.count() <= 0:
@@ -64,7 +68,7 @@ class AugWindow(QWidget, Ui_Form):
 
     def listWidget_ItemClicked(self):
         row = self.listWidget.currentRow()
-        img = QPixmap(ImageQt.toqpixmap(self.augImages[row])).scaled(self.label.width() - 10, self.label.height() - 10, Qt.KeepAspectRatio,
+        img = QPixmap(ImageQt.toqpixmap(self.augImages[row]['image'])).scaled(self.label.width() - 10, self.label.height() - 10, Qt.KeepAspectRatio,
                                       Qt.SmoothTransformation)
         self.label.setPixmap(img)
 
