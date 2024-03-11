@@ -1,0 +1,29 @@
+{
+    "train_filename": "./crnn/data/Synth90K/test.txt",
+    "val_filename": "./crnn/data/Synth90K/val.txt",
+    "test_filename": "./crnn/data/Synth90K/test.txt",
+    "root_dir": "./crnn/data/Synth90K/",
+
+    "char_dict_file": "./crnn/data/Synth90K/charlist.txt",
+
+    "/**/": "height % 32 == 0 && width %/ 8 > max_label_length",
+    "image_size": [32, 200],
+    "max_label_length": 25,
+    
+    "CUDA_VISIBLE_DEVICES": "0, 1, 2, 3",
+    "gpu_num": 1,
+    "device": "cuda",
+
+    "num_workers": 1,
+
+    "nclass": 37,
+    "epoch": 50,
+    "batchSize": 512,
+
+    "learningRate": 0.001,
+
+    "preTrained": true,
+    "load_path": "./crnn/trained_weights/expr_Synth_epoch5/crnn_without_rnn.pth",
+
+    "showIter": 1000
+}
