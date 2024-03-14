@@ -1,6 +1,9 @@
+import json
+
 import torch
 from PIL import Image, ImageDraw
 import numpy as np
+import time
 import os
 import sys
 import pathlib
@@ -14,12 +17,13 @@ from post_processing import get_post_processing
 
 
 class DBNet:
-    def __init__(self, model_path: str, post_p_thre=0.7, gpu_id=None):
+    def __init__(self, model_path: str, post_p_thre=0.7, gpu_id=None, fast=False):
         '''
         :param model_path: 加载模型地址
         :param post_p_thre:
         :param gpu_id: 运行模型的gpu
         '''
+        self.fast = fast
         self.gpu_id = gpu_id
         if self.gpu_id is not None and isinstance(self.gpu_id, int) and torch.cuda.is_available():
             self.device = torch.device("cuda:%s" % self.gpu_id)
@@ -54,8 +58,8 @@ class DBNet:
         '''
         # 将图像缩放到长款为32的整数倍
         w, h = image.size
-        w_ = (w // 32) * 32
-        h_ = (h // 32) * 32
+        w_ = 320 if self.fast else (w // 32) * 32
+        h_ = 320 if self.fast else (h // 32) * 32
         image = image.resize((w_, h_))
         self.w_ratio = float(w_ / w)
         self.h_ratio = float(h_ / h)
@@ -91,9 +95,11 @@ class DBNet:
                     box_list, score_list = box_list[idx], score_list[idx]
             else:
                 box_list, score_list = [], []
-        if box_list.shape[0] > 0:
+        if len(box_list) > 0 and box_list.shape[0] > 0:
             box_list = box_list / np.array((self.w_ratio, self.h_ratio))
             box_list = box_list.astype(np.int16)
+        else:
+            return box_list
         return box_list.tolist()
 
 def show_res(image, polygon):
@@ -104,8 +110,11 @@ def show_res(image, polygon):
 
 if __name__ == '__main__':
     model = DBNet('./model_best.pth')
-    image = Image.open('../0190.jpg')
+    image = Image.open('../../Dir/sampling_9.jpg')
+    start = time.time()
     res = model.predict(image)
+    end = time.time()
+    print(end - start)
     print(res)
     show_res(image, res)
 

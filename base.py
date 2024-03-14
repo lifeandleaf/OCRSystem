@@ -1093,7 +1093,7 @@ class Ui_OCR(object):
         self.verticalLayout.setStretch(2, 1)
 
         self.retranslateUi(OCR)
-        self.stackedWidget.setCurrentIndex(0)
+        self.stackedWidget.setCurrentIndex(1)
         self.tabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(OCR)
 
@@ -1111,7 +1111,7 @@ class Ui_OCR(object):
         self.label_3.setText(_translate("OCR", "Video"))
         self.pushButton_9.setText(_translate("OCR", "打开摄像头"))
         self.pushButton_8.setText(_translate("OCR", "打开文件夹"))
-        self.radioButton.setText(_translate("OCR", "实时采集"))
+        self.radioButton.setText(_translate("OCR", "实时检测"))
         self.pushButton_7.setText(_translate("OCR", "导入"))
         self.pushButton_13.setText(_translate("OCR", "自动识别"))
         self.label_4.setText(_translate("OCR", "显示区域"))

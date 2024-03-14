@@ -80,6 +80,6 @@ def cropImage(img_pil, points):
 if __name__ == '__main__':
     img = Image.open('./test.jpg')
     base64str = imageToBase64(img)
-    print(base64str)
+    # print(base64str)
     img = base64ToImage(base64str)
     img.show()

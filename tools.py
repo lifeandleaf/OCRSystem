@@ -3,12 +3,28 @@ from PIL import Image
 import cv2
 import numpy as np
 import os
+from io import BytesIO
+import base64
+import requests
+import json
 
 from straug.blur import GaussianBlur, DefocusBlur, MotionBlur, GlassBlur, ZoomBlur
 from straug.camera import Contrast, Brightness, Pixelate
 from straug.geometry import Rotate, Shrink, TranslateX, TranslateY
 from straug.noise import GaussianNoise, ShotNoise, ImpulseNoise, SpeckleNoise
 from straug.weather import Fog, Rain, Shadow
+
+def imageToBase64(image: Image.Image, fmt='jpeg') -> str:
+    '''
+    :param image:pillow image
+    :param fmt:文件格式，png or jpeg or gif ...
+    :return:base64str of this image
+    '''
+    output_buffer = BytesIO()
+    image.save(output_buffer, format=fmt)
+    byte_data = output_buffer.getvalue()
+    base64str = base64.b64encode(byte_data).decode('utf-8')
+    return base64str
 
 def Recognize(imgPath):
     '''
@@ -26,8 +42,27 @@ def Recognize(imgPath):
             }
     '''
     img = Image.open(imgPath)
-    time.sleep(1)
-    return {'points': [[10, 10, 50, 10, 50, 30, 10, 30]], 'label': ['123456']}
+    base64str = imageToBase64(img, 'jpeg')
+    data = {'image': base64str}
+    res = requests.post('http://127.0.0.1:5000/', data=json.dumps(data))
+    res = json.loads(res.text)
+    if res['status']:
+        print(res)
+        return {'points': res['points'], 'label': res['label']}
+    return {'points': [[10, 10, 50, 10, 50, 30, 10, 30]], 'label': ['???????']}
+
+def Detect(image):
+    '''
+    :param image: 输入图像pillow.Image格式
+    :return:
+    '''
+    base64str = imageToBase64(image, 'jpeg')
+    data = {'image': base64str}
+    res = requests.post('http://127.0.0.1:5000/dbnet', data=json.dumps(data))
+    res = json.loads(res.text)
+    if res['status']:
+        return {'points': res['points'], 'label': res['label']}
+    return {'points': [[10, 10, 50, 10, 50, 30, 10, 30]], 'label': ['???????']}
 
 def cropImage(imgPath, points):
     '''

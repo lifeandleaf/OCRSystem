@@ -387,7 +387,7 @@ QLineEdit#lineEdit{
          <string notr="true"/>
         </property>
         <property name="currentIndex">
-         <number>2</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="page">
          <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="2,8">
@@ -1700,7 +1700,7 @@ QLineEdit#lineEdit{
                       <enum>Qt::LeftToRight</enum>
                      </property>
                      <property name="text">
-                      <string>实时采集</string>
+                      <string>实时检测</string>
                      </property>
                     </widget>
                    </item>

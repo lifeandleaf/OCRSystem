@@ -7,6 +7,7 @@ from CRNN.inference import Catt
 
 app = Flask(__name__)
 dbnet_ = DBNet('./DBNet/model_best.pth')
+miniDb = DBNet('./DBNet/model_best.pth', fast=True)
 catt_ = Catt(model_path='./CRNN/trained_weights/expr_CATT_epoch50/best.pth', image_height=32,
               charList='0123456789abcdefghijklmnopqrstuvwxyz')
 
@@ -53,7 +54,7 @@ def detect():
          'points': [],
          'label': []
       }
-      res_d = dbnet_.predict(image)
+      res_d = miniDb.predict(image)
       for box in res_d:
          point = []
          for p in box:
@@ -63,5 +64,5 @@ def detect():
    return ERRORRET
 
 if __name__ == '__main__':
-   app.run(host='127.0.0.1', port=5000, debug=True)
+   app.run(host='127.0.0.1', port=5000, debug=False)
 

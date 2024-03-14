@@ -1,7 +1,9 @@
 import sys, os, json
 import threading
 import time
-from PIL import ImageQt, Image # pillow == 8.1.0
+
+import numpy
+from PIL import ImageQt, Image, ImageDraw # pillow == 8.1.0
 import cv2
 
 
@@ -12,7 +14,7 @@ from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QPixmap, QIcon, QImage, QMovie
 from PyQt5.QtCore import Qt, QSize, QTimer, QThread, pyqtSignal
 
-from tools import Recognize, cropImage, augImage
+from tools import Recognize, cropImage, augImage, Detect
 
 class getInfo(QThread):
     signal = pyqtSignal(dict)
@@ -25,6 +27,7 @@ class getInfo(QThread):
         if os.path.exists(self.imgPath.replace(fileExtension, '.json')):
             self.signal.emit(self.imgPath)
             return
+        print(self.imgPath)
         info = Recognize(self.imgPath)
         with open(self.imgPath.replace(fileExtension, '.json'), 'w') as f:
             f.write(json.dumps(info))
@@ -96,6 +99,8 @@ class MyWindow(QWidget, Ui_OCR):
         self.stackedWidget.setCurrentIndex(1)
         self.progressBar.reset()
         self.timer_camera = QTimer()
+        self.videoDetectCount = 0
+        self.videoDetectInfo = []
         self.videoCap = cv2.VideoCapture()
         self.CAM_NUM = 0
         self.radioButton.setEnabled(False)
@@ -168,13 +173,15 @@ class MyWindow(QWidget, Ui_OCR):
             if flag == False:
                 msg = QMessageBox.warning(self, '警告', "请检查相机与电脑是否正确连接", buttons=QMessageBox.Ok)
             else:
+                self.videoDetectCount = 0
                 self.timer_camera.start(30)
                 self.pushButton_9.setText('关闭摄像头')
-                if self.pushButton_8.text() == '拍摄':
-                    self.radioButton.setEnabled(True)
+                self.radioButton.setEnabled(True)
         else:
             self.timer_camera.stop()
             self.videoCap.release()
+            self.videoDetectInfo = []
+            self.videoDetectCount = 0
             self.label_3.setText('视频窗口')
             self.pushButton_9.setText('打开摄像头')
             # 关闭自动采样
@@ -184,7 +191,18 @@ class MyWindow(QWidget, Ui_OCR):
     # 从视频流采样并显示
     def showVideo(self):
         flag, img = self.videoCap.read()
-
+        self.videoDetectCount = (self.videoDetectCount + 1) % 10
+        img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+        if self.radioButton.isChecked() and self.videoDetectCount == 0:
+            self.videoDetectInfo = Detect(img)['points']
+        draw = ImageDraw.Draw(img)
+        if len(self.videoDetectInfo) > 0:
+            for i in range(len(self.videoDetectInfo)):
+                tmp = []
+                for ix in range(len(self.videoDetectInfo[i]) // 2):
+                    tmp.append((self.videoDetectInfo[i][ix * 2], self.videoDetectInfo[i][ix * 2 + 1]))
+                draw.polygon(tmp, outline=(255, 0, 0))
+        img = cv2.cvtColor(numpy.array(img), cv2.COLOR_RGB2BGR)
         show = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         showImg = QImage(show.data, show.shape[1], show.shape[0], QImage.Format_RGB888)
         showImg = QPixmap.fromImage(showImg).scaled(self.label_3.width() - 10, self.label_3.height() - 10, Qt.KeepAspectRatio,
@@ -212,7 +230,7 @@ class MyWindow(QWidget, Ui_OCR):
                 self.listWidget_2.addItem(filePath)
                 img = QPixmap(filePath)
                 img = img.scaled(self.label_5.width() - 10, self.label_5.height() - 10, Qt.KeepAspectRatio,
-                                 Qt.SmoothTWransformation)
+                                 Qt.SmoothTransformation)
                 self.label_5.setPixmap(img)
                 self.loading_label(self.label_6)
                 self.infoThread = getInfo(filePath)
