@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>钢印文本识别系统</string>
+   <string>钢印字符识别与分析</string>
   </property>
   <property name="windowIcon">
    <iconset>
