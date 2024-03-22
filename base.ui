@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>OCR</string>
+   <string>钢印文本识别系统</string>
   </property>
   <property name="windowIcon">
    <iconset>

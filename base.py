@@ -1099,7 +1099,7 @@ class Ui_OCR(object):
 
     def retranslateUi(self, OCR):
         _translate = QtCore.QCoreApplication.translate
-        OCR.setWindowTitle(_translate("OCR", "OCR"))
+        OCR.setWindowTitle(_translate("OCR", "钢印文本识别系统"))
         self.pushButton.setText(_translate("OCR", "图像采集"))
         self.pushButton_2.setText(_translate("OCR", "文本识别"))
         self.pushButton_3.setText(_translate("OCR", "数据处理"))

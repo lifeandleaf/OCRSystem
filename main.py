@@ -317,7 +317,10 @@ class MyWindow(QWidget, Ui_OCR):
 
         # 标签获取
         if 'label' in info:
-            self.label_7.setText(info['label'][0])
+            if len(info['label']) > 0:
+                self.label_7.setText(info['label'][0])
+            else:
+                self.label_7.setText("")
 
     def pushButton_15Clicked(self):
         if self.listWidget_3.count() <= 0:
