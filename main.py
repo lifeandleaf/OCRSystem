@@ -1,9 +1,6 @@
 import sys, os, json
-import threading
-import time
-
 import numpy
-from PIL import ImageQt, Image, ImageDraw # pillow == 8.1.0
+from PIL import ImageQt, Image, ImageDraw
 import cv2
 
 
@@ -49,6 +46,13 @@ class AugWindow(QWidget, Ui_Form):
         self.pushButton.clicked.connect(self.pushButtonClicked)
         self.pushButton_2.clicked.connect(self.pushButton_2Clicked)
 
+    def Image2Pixmap(self, image: Image) -> QPixmap:
+        img = cv2.cvtColor(numpy.asarray(image), cv2.COLOR_RGB2BGR)
+        h, w, d = img.shape
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = QImage(img.data, w, h, w * d, QImage.Format_RGB888)
+        return QPixmap.fromImage(img)
+
     def showInLabel(self, imgPath) -> None:
         # 添加增广图像显示在列表中
         self.listWidget.clear()
@@ -56,7 +60,7 @@ class AugWindow(QWidget, Ui_Form):
         for dict in self.augImages:
             key = dict['name']
             img = dict['image']
-            img = QPixmap(ImageQt.toqpixmap(img)).scaled(self.listWidget.width() - 10, self.listWidget.height() - 10, Qt.KeepAspectRatio,
+            img = QPixmap(self.Image2Pixmap(img)).scaled(self.listWidget.width() - 10, self.listWidget.height() - 10, Qt.KeepAspectRatio,
                          Qt.SmoothTransformation)
             item = QListWidgetItem()
             item.setIcon(QIcon(img))
@@ -71,7 +75,7 @@ class AugWindow(QWidget, Ui_Form):
 
     def listWidget_ItemClicked(self):
         row = self.listWidget.currentRow()
-        img = QPixmap(ImageQt.toqpixmap(self.augImages[row]['image'])).scaled(self.label.width() - 10, self.label.height() - 10, Qt.KeepAspectRatio,
+        img = QPixmap(self.Image2Pixmap(self.augImages[row]['image'])).scaled(self.label.width() - 10, self.label.height() - 10, Qt.KeepAspectRatio,
                                       Qt.SmoothTransformation)
         self.label.setPixmap(img)
 
@@ -131,6 +135,13 @@ class MyWindow(QWidget, Ui_OCR):
         self.listWidget_5.itemDoubleClicked.connect(self.listWidget_5ItemDoubleClicked)
 
         self.show()
+
+    def Image2Pixmap(self, image: Image) -> QPixmap:
+        img = cv2.cvtColor(numpy.asarray(image), cv2.COLOR_RGB2BGR)
+        h, w, d = img.shape
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = QImage(img.data, w, h, w * d, QImage.Format_RGB888)
+        return QPixmap.fromImage(img)
 
     # 图像采集界面
     def pushButtonClicked(self):
@@ -307,7 +318,7 @@ class MyWindow(QWidget, Ui_OCR):
         if 'points' in info:
             for point in info['points']:
                 cropImg = cropImage(imgPath, point)
-                cropImg = QPixmap(ImageQt.toqpixmap(cropImg))
+                cropImg = QPixmap(self.Image2Pixmap(cropImg))
                 cropImg = cropImg.scaled(self.listWidget_4.width()-10, self.listWidget_4.height()-10, Qt.KeepAspectRatio, Qt.SmoothTransformation)
                 item = QListWidgetItem()
                 item.setIcon(QIcon(cropImg))
