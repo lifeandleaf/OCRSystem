@@ -1,6 +1,6 @@
 import sys, os, json
 import numpy
-from PIL import ImageQt, Image, ImageDraw
+from PIL import Image, ImageDraw
 import cv2
 
 
@@ -110,6 +110,10 @@ class MyWindow(QWidget, Ui_OCR):
         self.radioButton.setEnabled(False)
         self.videoCapDir = ''
         self.augWindow = AugWindow()
+        # 设置窗体无边框
+        # self.setWindowFlags(Qt.FramelessWindowHint)
+        # 设置背景透明
+        # self.setAttribute(Qt.WA_TranslucentBackground)
         # 绑定回调函数
         self.timer_camera.timeout.connect(self.showVideo)
 

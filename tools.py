@@ -137,6 +137,7 @@ def augImage(imgPath:str) -> list:
     return ret
 
 if __name__ == '__main__':
-    augImages = augImage('./Dir/ocr_0.jpg')
+    augImages = augImage('./Dir/AdaIN_918996_5_with_1044.jpg')
     for img in augImages:
-        img.show()
+        print(img['name'])
+        img['image'].save('./aug/'+img['name']+'.jpg')
