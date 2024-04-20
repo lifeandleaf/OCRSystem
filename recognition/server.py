@@ -6,10 +6,10 @@ from DBNet.inference import DBNet
 from CRNN.inference import Catt
 
 app = Flask(__name__)
-dbnet_ = DBNet('./DBNet/model_best.pth')
-miniDb = DBNet('./DBNet/model_best.pth', fast=True)
+dbnet_ = DBNet('./DBNet/model_best.pth', gpu_id=0)
+miniDb = DBNet('./DBNet/model_best.pth', fast=True, gpu_id=0)
 catt_ = Catt(model_path='./CRNN/trained_weights/expr_CATT_epoch50/best.pth', image_height=32,
-              charList='0123456789abcdefghijklmnopqrstuvwxyz')
+              charList='0123456789abcdefghijklmnopqrstuvwxyz', gpu_id=0)
 
 ERRORRET = {'state': False, 'points':[], 'label':[]}
 @app.route('/', methods=['POST'])
